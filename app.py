@@ -1,12 +1,14 @@
 from flask import Flask
 from roomcontroller import room_api
 from employeecontroller import employee_api
+from bookingcontroller import booking_api
 from flask_cors import CORS
 
 app = Flask(__name__)
 
 app.register_blueprint(room_api)
 app.register_blueprint(employee_api)
+app.register_blueprint(booking_api)
 
 CORS(app)
 
