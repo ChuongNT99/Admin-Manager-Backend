@@ -10,13 +10,6 @@ app = Flask(__name__)
 
 booking_api = Blueprint("bookingcontroller", __name__)
 
-db_config = {
-    'host': 'localhost',
-    'user': 'root',
-    'password': '001122',
-    'database': 'admin_manager_db',
-}
-
 
 def create_db_connection():
     try:
@@ -59,8 +52,12 @@ def book_room():
     room_id = data.get('room_id')
     time_start = data.get('time_start_booking')
     time_end = data.get('time_end_booking')
+    print(time_start, "TIME STARTTTTTTTTTTTTTTTTT")
+    print(time_end, "TIME ENDDDDDDDDDDDDDDDĐ")
     employee_id = data.get('employees_id')
     current_time = datetime.now()
+    formatted_current_time = current_time.strftime('%Y-%m-%d %H:%M:%S')
+    print(formatted_current_time, "CURRENT TIMEEEEEEEEEE")
     conn = create_db_connection()
     cursor = conn.cursor()
 
@@ -90,9 +87,8 @@ def book_room():
         if booking_info:
             time_start_booking = booking_info[0][2]
             time_end_booking = booking_info[0][3]
-
         # Kiểm tra xem thời gian hiện tại có nằm trong khoảng đặt phòng hay không
-            if time_start_booking <= current_time <= time_end_booking:
+            if time_start_booking <= formatted_current_time <= time_end_booking:
                 cursor.execute(
                     "UPDATE room_meeting SET status = %s WHERE room_id = %s", (1, room_id))
                 conn.commit()
