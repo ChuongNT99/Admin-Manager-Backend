@@ -112,14 +112,18 @@ def book_room():
         conn.close()
 
 
-# Lấy danh sách lịch họp
 @booking_api.route('/bookings', methods=['GET'])
 def get_bookings():
     conn = create_db_connection()
     cursor = conn.cursor(dictionary=True)
 
     try:
-        cursor.execute("SELECT * FROM booking")
+        cursor.execute(
+            "SELECT booking.*, room_meeting.room_name, employees.employees_name "
+            "FROM booking "
+            "INNER JOIN room_meeting ON booking.room_id = room_meeting.room_id "
+            "INNER JOIN employees ON booking.employee_id = employees.employees_id"
+        )
         rows = cursor.fetchall()
         return jsonify({'bookings': rows})
     except Error as e:
