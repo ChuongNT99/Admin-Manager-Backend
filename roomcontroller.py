@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify, Blueprint
 from flask_cors import CORS
 from db_config import db_config
 import mysql.connector
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -18,8 +19,31 @@ def get_rooms():
         conn = create_db_connection()
         cursor = conn.cursor(dictionary=True)
         cursor.execute("SELECT * FROM room_meeting")
-        rows = cursor.fetchall()
-        return jsonify({"rooms": rows})
+        rooms = cursor.fetchall()
+        current_time = datetime.now()
+
+        for room in rooms:
+            room_id = room['room_id']
+
+            # Kiểm tra xem có bất kỳ đặt phòng nào cho phòng này và thời gian hiện tại nằm trong khoảng đó hay không
+            cursor.execute(
+                "SELECT booking_id, time_start_booking, time_end_booking FROM booking WHERE room_id = %s AND %s BETWEEN time_start_booking AND time_end_booking",
+                (room_id, current_time)
+            )
+            booking_info = cursor.fetchone()
+
+            if booking_info:
+                # Trạng thái của phòng bây giờ là 1 (bận)
+                cursor.execute(
+                    "UPDATE room_meeting SET status = 1 WHERE room_id = %s", (room_id,))
+                conn.commit()
+            else:
+                # Phòng trống
+                cursor.execute(
+                    "UPDATE room_meeting SET status = 0 WHERE room_id = %s", (room_id,))
+                conn.commit()
+
+        return jsonify({"rooms": rooms})
     except Exception as e:
         return jsonify({"error": "Internal Server Error"}), 500
     finally:
