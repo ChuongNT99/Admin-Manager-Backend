@@ -5,7 +5,6 @@ from flask_cors import CORS
 from db_config import db_config
 from datetime import datetime
 
-
 app = Flask(__name__)
 
 booking_api = Blueprint("bookingcontroller", __name__)
@@ -52,12 +51,7 @@ def book_room():
     room_id = data.get('room_id')
     time_start = data.get('time_start_booking')
     time_end = data.get('time_end_booking')
-    print(time_start, "TIME STARTTTTTTTTTTTTTTTTT")
-    print(time_end, "TIME ENDDDDDDDDDDDDDDDĐ")
     employee_id = data.get('employees_id')
-    current_time = datetime.now()
-    formatted_current_time = current_time.strftime('%Y-%m-%d %H:%M:%S')
-    print(formatted_current_time, "CURRENT TIMEEEEEEEEEE")
     conn = create_db_connection()
     cursor = conn.cursor()
 
@@ -80,26 +74,23 @@ def book_room():
             return jsonify({'error': 'Employee not found'}), 404
         conn.commit()
 
-        cursor.execute("SELECT * FROM booking WHERE room_id = %s", (room_id,))
-        booking_info = cursor.fetchall()
-
-    # Kiểm tra xem thời gian hiện tại có nằm trong khoảng đặt phòng hay không
-        if booking_info:
-            time_start_booking = booking_info[0][2]
-            time_end_booking = booking_info[0][3]
-        # Kiểm tra xem thời gian hiện tại có nằm trong khoảng đặt phòng hay không
-            if time_start_booking <= formatted_current_time <= time_end_booking:
+        cursor.execute(
+            "SELECT status FROM room_meeting WHERE room_id = %s", (room_id,))
+        room_status = cursor.fetchone()
+        if room_status:
+            room_status = room_status[0]
+            if room_status == 0:
+                # Phòng đang trống, bạn có thể đặt phòng thành công
                 cursor.execute(
                     "UPDATE room_meeting SET status = %s WHERE room_id = %s", (1, room_id))
                 conn.commit()
                 return jsonify({'message': 'Booking created successfully'})
             else:
-                # Nếu thời gian hiện tại không nằm trong khoảng đặt phòng, trả về lỗi
-                print("Phòng không còn trống cho thời gian này")
-                return jsonify({'error': 'Room is not available for this time'}), 400
+                # Phòng đang bận, không thể đặt phòng
+                return jsonify({'error': 'Room is not available, it is already booked'}), 400
         else:
-            print("Không tìm thấy thông tin đặt phòng cho phòng có room_id =", room_id)
-            return jsonify({'error': 'Room booking information not found'})
+            # Không tìm thấy thông tin phòng
+            return jsonify({'error': 'Room information not found'}), 400
     except Error as e:
         print("Error:", e)
         return jsonify({'error': 'Internal Server Error'}), 500
