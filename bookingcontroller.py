@@ -56,6 +56,17 @@ def book_room():
     cursor = conn.cursor()
 
     try:
+        # Kiểm tra xem thời gian mới có nằm trong khoảng thời gian đã đặt trước đó không
+        cursor.execute(
+            "SELECT booking_id FROM booking WHERE room_id = %s AND (%s <= time_end_booking AND %s >= time_start_booking)",
+            (room_id, time_start, time_end)
+        )
+        existing_booking = cursor.fetchone()
+
+        if existing_booking:
+            return jsonify({'error': 'Room is already booked for this time'}), 400
+        cursor.close()
+        # Tiếp tục thêm thông tin đặt phòng và các kiểm tra khác
         cursor.execute("INSERT INTO booking (room_id, time_start_booking, time_end_booking) VALUES (%s, %s, %s)",
                        (room_id, time_start, time_end))
         booking_id = cursor.lastrowid
@@ -72,7 +83,6 @@ def book_room():
         else:
             print("Employee not found with ID:", employee_id)
             return jsonify({'error': 'Employee not found'}), 404
-        conn.commit()
 
         cursor.execute(
             "SELECT status FROM room_meeting WHERE room_id = %s", (room_id,))
