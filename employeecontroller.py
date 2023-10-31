@@ -29,6 +29,14 @@ def data():
             _phone_number=_json['phone_number']
             conn = mysql.connector.connect(**db_config)
             cursor=conn.cursor()
+            cursor.execute("SELECT email FROM employees WHERE email = %s", (_email,))
+            existing_email = cursor.fetchone()
+            cursor.execute("SELECT phone_number FROM employees WHERE phone_number = %s", (_phone_number,))
+            existing_phone_number = cursor.fetchone()
+            if existing_email:
+                return jsonify({"error": "Email already exists"}), 400
+            if existing_phone_number:
+                return jsonify({"error": "Phone number already exists"}), 400
             cursor.execute("INSERT INTO employees(employees_name,email,phone_number) VALUES(%s,%s,%s)",(_employees_name,_email,_phone_number))
             conn.commit()  
             return jsonify({"message": "Created employee successfully"})
@@ -48,6 +56,14 @@ def employee_one(employees_id):
             _phone_number=_json['phone_number']
             conn = mysql.connector.connect(**db_config)
             cursor=conn.cursor()
+            cursor.execute("SELECT email FROM employees WHERE email = %s", (_email,))
+            existing_email = cursor.fetchone()
+            cursor.execute("SELECT phone_number FROM employees WHERE phone_number = %s", (_phone_number,))
+            existing_phone_number = cursor.fetchone()
+            if existing_email:
+                return jsonify({"error": "Email already exists"}), 400
+            if existing_phone_number:
+                return jsonify({"error": "Phone number already exists"}), 400
             query = "UPDATE employees SET employees_name=%s, email=%s, phone_number=%s WHERE employees_id=%s" 
             cursor.execute(query, (_employee_name,_email,_phone_number,employees_id))
             conn.commit()  
