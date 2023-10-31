@@ -3,7 +3,6 @@ import mysql.connector
 from mysql.connector.errors import Error
 from flask_cors import CORS
 from db_config import db_config
-from datetime import datetime
 
 app = Flask(__name__)
 
@@ -21,23 +20,17 @@ def create_db_connection():
 
 @booking_api.route('/get_employee', methods=['GET'])
 def get_employee():
-    employee_id = request.args.get('employee_id')
-
-    if not employee_id:
-        return jsonify({'error': 'employee_id is required'}), 400
-
     conn = create_db_connection()
     cursor = conn.cursor(dictionary=True)
 
     try:
-        cursor.execute(
-            "SELECT * FROM employees WHERE employees_id = %s", (employee_id,))
-        employee = cursor.fetchone()
+        cursor.execute("SELECT * FROM employees")
+        employees = cursor.fetchall()
 
-        if not employee:
-            return jsonify({'error': 'Employee not found'}), 404
+        if not employees:
+            return jsonify({'error': 'No employees found'}), 404
 
-        return jsonify(employee)
+        return jsonify({'employees': employees})
     except Error as e:
         return jsonify({'error': 'Internal Server Error'}), 500
     finally:
