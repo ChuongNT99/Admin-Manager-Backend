@@ -5,7 +5,6 @@ from flask_cors import CORS
 from db_config import db_config
 from datetime import datetime
 
-
 app = Flask(__name__)
 
 booking_api = Blueprint("bookingcontroller", __name__)
