@@ -58,7 +58,6 @@ def book_room():
 
         if existing_booking:
             return jsonify({'error': 'Room is already booked for this time'}), 400
-        cursor.close()
         # Tiếp tục thêm thông tin đặt phòng và các kiểm tra khác
         cursor.execute("INSERT INTO booking (room_id, time_start_booking, time_end_booking) VALUES (%s, %s, %s)",
                        (room_id, time_start, time_end))
@@ -76,7 +75,6 @@ def book_room():
         else:
             print("Employee not found with ID:", employee_id)
             return jsonify({'error': 'Employee not found'}), 404
-
         cursor.execute(
             "SELECT status FROM room_meeting WHERE room_id = %s", (room_id,))
         room_status = cursor.fetchone()
